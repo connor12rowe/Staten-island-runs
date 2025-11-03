@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Run Details — Staten Island Runs</title>
+  <style>
+    :root{ --bg:#0f1221; --card:#161a2f; --ink:#eef2ff; --muted:#b5c0ff; --accent:#7c9cff; --accent-2:#58e1ff; --shadow:0 10px 30px rgba(0,0,0,.25); --radius:14px; }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:var(--ink); background:radial-gradient(1200px 800px at 80% -10%, #1a1f3f 0%, #0f1221 55%, #0b0e1a 100%) fixed; line-height:1.5;}
+    .container{max-width:900px;margin:0 auto;padding:0 20px}
+    header{position:sticky;top:0;z-index:10;backdrop-filter: blur(8px); background:rgba(10,12,22,.7);border-bottom:1px solid rgba(255,255,255,.06)}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:800}
+    .logo{width:36px;height:36px;border-radius:10px;display:grid;place-items:center; background: conic-gradient(from 200deg at 50% 50%, #4f66ff, #58e1ff, #7c9cff, #4f66ff); color:#0a0d1a;font-weight:900;box-shadow: var(--shadow);}
+    a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+    .panel{background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01)); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .muted{color:#b5c0ff}
+    footer{padding:36px 0 60px;color:#b5c0ff;font-size:14px}
+  </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand"><div class="logo">SI</div><a href="index.html">Staten Island Runs</a></div>
+      <nav class="row"><a href="index.html#upcoming">Upcoming</a><a href="privacy.html">Privacy</a></nav>
+    </div>
+  </header>
+
+  <main class="container" style="padding:24px 0">
+    <div id="details" class="panel"></div>
+    <div id="map" style="height:360px;margin-top:14px" class="panel" aria-label="Map"></div>
+  </main>
+
+  <footer class="container">
+    <div class="row" style="justify-content:space-between">
+      <div class="brand"><div class="logo">SI</div><div>Staten Island Runs</div></div>
+      <a href="privacy.html">Privacy</a>
+    </div>
+  </footer>
+
+  <script>
+    const PARK_COORDS = {
+      "Clove Lakes Park Courts":[40.6139,-74.1169],
+      "Silver Lake Park Courts":[40.6257,-74.1079],
+      "Midland Beach Courts":[40.5737,-74.0870],
+      "Schmul Park (Bloomfield)":[40.6206,-74.1901],
+      "Wolfe's Pond Park Courts":[40.5107,-74.1917],
+      "Faber Park":[40.6407,-74.1420],
+      "Corporal Thompson Park":[40.6373,-74.1408]
+    };
+
+    function q(name){return new URL(location.href).searchParams.get(name)}
+    function b64urldecode(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); return decodeURIComponent(escape(atob(s))); }
+    function pad(n){return String(n).padStart(2,'0')}
+
+    const d = q('d');
+    let data = null;
+    try{ data = JSON.parse(b64urldecode(d)); }catch(e){}
+
+    function iCalDate(dateStr,timeStr){
+      const dt = new Date(dateStr + 'T' + (timeStr||'18:00') + ':00');
+      const y = dt.getFullYear(), m=pad(dt.getMonth()+1), d=pad(dt.getDate()), h=pad(dt.getHours()), min=pad(dt.getMinutes());
+      return y+m+d+'T'+h+min+'00';
+    }
+
+    function buildICS(data){
+      const dtstart = iCalDate(data.date,data.time);
+      const dtend = iCalDate(data.date, data.time);
+      const uid = (crypto.randomUUID ? crypto.randomUUID() : Date.now()) + '@siruns';
+      const ics = [
+        'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Staten Island Runs//EN',
+        'BEGIN:VEVENT',
+        'UID:'+uid,
+        'DTSTART:'+dtstart,
+        'DTEND:'+dtend,
+        'SUMMARY:Pickup at '+data.park,
+        'DESCRIPTION:'+(data.note||'')+' Hosted by '+(data.host||'unknown'),
+        'LOCATION:'+data.park+', Staten Island, NY',
+        'END:VEVENT','END:VCALENDAR'
+      ].join('\r\n');
+      return 'data:text/calendar;charset=utf-8,'+encodeURIComponent(ics);
+    }
+
+    function formatTime(dateStr,timeStr){
+      try{ const dt=new Date(dateStr+'T'+timeStr); return dt.toLocaleString(undefined,{weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}); }
+      catch(e){ return dateStr+' '+timeStr; }
+    }
+
+    function render(){
+      const el = document.getElementById('details');
+      if(!data){
+        el.innerHTML = '<h2 style="margin:0">Invalid run link</h2><p class="muted">This link seems broken. Ask the organizer to share a new one.</p>';
+        return;
+      }
+      const coords = PARK_COORDS[data.park];
+      const when = formatTime(data.date,data.time);
+      const players = data.players ? `<span class="muted">Players: ${data.players}</span>` : '';
+      const host = data.host ? `<span class="muted">Organizer: ${data.host}</span>` : '';
+      el.innerHTML = `
+        <h1 style="margin:0 0 6px">${data.park}</h1>
+        <p class="muted" style="margin:0 0 10px">${when} • ${data.skill} • Need ${data.need}</p>
+        <p style="margin-top:0">${data.note||''}</p>
+        <div class="row">${players} ${host}</div>
+        <div class="row" style="margin-top:10px">
+          <a class="btn" style="background:linear-gradient(90deg,#4f66ff,#58e1ff);color:#06101a;padding:10px 14px;border-radius:10px" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.park+' Staten Island NY')}" target="_blank">Directions</a>
+          <button class="btn" style="background:linear-gradient(90deg,#4f66ff,#58e1ff);color:#06101a;padding:10px 14px;border-radius:10px" onclick="toggleRSVP()">RSVP</button>
+          <a class="btn" style="background:linear-gradient(90deg,#4f66ff,#58e1ff);color:#06101a;padding:10px 14px;border-radius:10px" href="${buildICS(data)}" download="staten-island-run.ics">Add to Calendar</a>
+          <button class="btn" style="background:linear-gradient(90deg,#4f66ff,#58e1ff);color:#06101a;padding:10px 14px;border-radius:10px" onclick="share()">Share</button>
+        </div>
+        <p id="rsvpState" class="muted" style="margin-top:8px"></p>
+      `;
+
+      const map = L.map('map').setView(coords || [40.5795, -74.1502], coords?14:12);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19}).addTo(map);
+      if(coords) L.marker(coords).addTo(map).bindPopup(data.park).openPopup();
+
+      updateRSVPState();
+    }
+
+    function runKey(){ return 'si-run-' + (q('d')||''); }
+    function isJoined(){ return localStorage.getItem(runKey())==='joined'; }
+    function toggleRSVP(){
+      if(isJoined()) localStorage.removeItem(runKey());
+      else localStorage.setItem(runKey(),'joined');
+      updateRSVPState();
+    }
+    function updateRSVPState(){
+      const p = document.getElementById('rsvpState');
+      p.textContent = isJoined() ? '✓ You RSVPed on this device.' : 'Not RSVPed yet on this device.';
+    }
+    function share(){
+      const url = location.href;
+      if(navigator.share) navigator.share({title:'Pickup at '+data.park, text:'Run at '+data.park+' on '+formatTime(data.date,data.time), url});
+      else navigator.clipboard.writeText(url).then(()=>alert('Link copied!'));
+    }
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy — Staten Island Runs</title>
+  <style>
+    :root{ --bg:#0f1221; --card:#161a2f; --ink:#eef2ff; --muted:#b5c0ff; --accent:#7c9cff; --accent-2:#58e1ff; --shadow:0 10px 30px rgba(0,0,0,.25); --radius:14px; }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:var(--ink); background:radial-gradient(1200px 800px at 80% -10%, #1a1f3f 0%, #0f1221 55%, #0b0e1a 100%) fixed; line-height:1.5;}
+    .container{max-width:900px;margin:0 auto;padding:0 20px}
+    header{position:sticky;top:0;z-index:10;backdrop-filter: blur(8px); background:rgba(10,12,22,.7);border-bottom:1px solid rgba(255,255,255,.06)}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:800}
+    .logo{width:36px;height:36px;border-radius:10px;display:grid;place-items:center; background: conic-gradient(from 200deg at 50% 50%, #4f66ff, #58e1ff, #7c9cff, #4f66ff); color:#0a0d1a;font-weight:900;box-shadow: var(--shadow);}
+    a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+    .panel{background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01)); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .muted{color:#b5c0ff}
+    footer{padding:36px 0 60px;color:#b5c0ff;font-size:14px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand"><div class="logo">SI</div><a href="index.html">Staten Island Runs</a></div>
+      <nav class="row"><a href="index.html#upcoming">Upcoming</a><a href="post.html">Post a Run</a></nav>
+    </div>
+  </header>
+
+  <main class="container" style="padding:24px 0">
+    <h1 style="margin:0 0 10px">Privacy Policy</h1>
+    <p class="muted" style="margin-top:0">Last updated: 2025-11-03</p>
+
+    <div class="panel">
+      <h3 style="margin-top:0">What we collect</h3>
+      <ul>
+        <li><strong>No accounts.</strong> We don’t require logins.</li>
+        <li><strong>Runs you post.</strong> When you use <em>Post a Run</em>, details are encoded into the shareable link itself. They are not uploaded to a server.</li>
+        <li><strong>RSVPs on your device only.</strong> RSVP state is stored in your browser’s <code>localStorage</code> so you can see what you joined.</li>
+        <li><strong>Location.</strong> If you allow location, it’s used in your browser to sort runs by distance and is not stored by us.</li>
+      </ul>
+      <h3>Third‑party services</h3>
+      <p>We use OpenStreetMap tiles via Leaflet for maps and link out to Google Maps for directions. Their privacy policies apply when you use those features.</p>
+      <h3>Cookies</h3>
+      <p>We don’t set tracking cookies. Your browser may set standard cookies for third‑party map tiles.</p>
+      <h3>Contact</h3>
+      <p>Questions? Email <a href="mailto:hello@example.com">hello@example.com</a>.</p>
+    </div>
+  </main>
+
+  <footer class="container">
+    <div class="row" style="justify-content:space-between">
+      <div class="brand"><div class="logo">SI</div><div>Staten Island Runs</div></div>
+      <a href="index.html">Home</a>
+    </div>
+  </footer>
+</body>
+</html>
