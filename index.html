@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Staten Island Runs — Find Local Pickup Basketball</title>
+  <meta name="description" content="Find and join local pickup basketball games at Staten Island parks. Search by park, date, and skill level. Post a run and meet new hoopers near you." />
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="dns-prefetch" href="https://unpkg.com">
+  <link rel="preconnect" href="https://tile.openstreetmap.org">
+  <style>
+    :root{
+      --bg:#0f1221; --card:#161a2f; --ink:#eef2ff; --muted:#b5c0ff; --accent:#7c9cff; --accent-2:#58e1ff;
+      --ok:#1dd1a1; --warn:#ffb020; --bad:#ff6b6b; --shadow:0 10px 30px rgba(0,0,0,.25); --radius:14px;
+    }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--ink); background:radial-gradient(1200px 800px at 80% -10%, #1a1f3f 0%, #0f1221 55%, #0b0e1a 100%) fixed; line-height:1.5;}
+    a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+    .container{max-width:1200px;margin:0 auto;padding:0 20px}
+    header{position:sticky;top:0;z-index:100; backdrop-filter: blur(8px); background:rgba(10,12,22,.7); border-bottom:1px solid rgba(255,255,255,.06)}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:.3px}
+    .logo{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background: conic-gradient(from 200deg at 50% 50%, #4f66ff, #58e1ff, #7c9cff, #4f66ff); color:#0a0d1a; font-weight:900; box-shadow: var(--shadow);}
+    .nav a.btn{background:linear-gradient(90deg,#4f66ff,#58e1ff);color:#05111a; padding:10px 14px;border-radius:10px;font-weight:700;box-shadow:var(--shadow);display:inline-block}
+    .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:28px;align-items:center;padding:40px 0 24px;}
+    .hero .title{font-size:clamp(28px,4vw,48px);line-height:1.1;margin:0 0 10px;font-weight:900}
+    .tag{display:inline-block;background:rgba(124,156,255,.12);border:1px solid rgba(124,156,255,.35); color:var(--muted);padding:6px 10px;border-radius:999px;font-size:12px;letter-spacing:.4px;margin-bottom:10px}
+    .hero p{color:var(--muted);margin:0 0 18px}
+    .panel{background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01)); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px;}
+    .search-grid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end}
+    .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    .field input,.field select{width:100%;padding:12px 12px;border-radius:10px;background:#0b0e1a;border:1px solid rgba(255,255,255,.12);color:var(--ink);outline:none;}
+    .btn-primary{background:linear-gradient(90deg,#4f66ff,#58e1ff); color:#06101a;border:0;border-radius:10px;padding:12px 16px;font-weight:800;cursor:pointer; box-shadow:var(--shadow)}
+    .meta{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:13px}
+    .section{padding:28px 0}
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:14px; display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow)}
+    .badge{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.15);display:inline-block;color:var(--muted)}
+    .card h3{margin:4px 0 0;font-size:18px}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .pill{padding:6px 10px;border-radius:999px;background:#0b0e1a;border:1px solid rgba(255,255,255,.12);font-size:12px;color:var(--muted)}
+    .card .cta{margin-top:auto;display:flex;gap:8px}
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.18);color:var(--ink);border-radius:10px;padding:10px 12px;cursor:pointer}
+    #map{height:420px;border-radius:var(--radius);overflow:hidden;border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow)}
+    .cta-banner{background:linear-gradient(90deg, rgba(88,225,255,.12), rgba(79,102,255,.12)); border:1px solid rgba(124,156,255,.25); padding:18px;border-radius:var(--radius);display:flex;justify-content:space-between;align-items:center;gap:12px}
+    footer{padding:36px 0 60px;color:var(--muted);font-size:14px}
+    footer .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .notice{font-size:12px;color:#9aa6ff}
+    @media (max-width: 980px){ .hero{grid-template-columns:1fr;gap:16px} .search-grid{grid-template-columns:1fr 1fr;gap:10px} .cards{grid-template-columns:1fr 1fr} }
+    @media (max-width: 620px){ .search-grid{grid-template-columns:1fr} .cards{grid-template-columns:1fr} .cta-banner{flex-direction:column;align-items:stretch} }
+  </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <header role="banner">
+    <div class="container nav" aria-label="Primary">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">SI</div>
+        <div>Staten Island Runs</div>
+      </div>
+      <nav class="meta" aria-label="Top actions">
+        <a href="#map">Map</a>
+        <a href="#upcoming">Upcoming</a>
+        <a class="btn" href="post.html">Post a Run</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="container" role="main">
+    <section class="hero">
+      <div>
+        <span class="tag" aria-label="Service area">Staten Island • Parks & Playgrounds</span>
+        <h1 class="title">Find a pickup game near you.</h1>
+        <p>Search community-posted runs at <strong>Clove Lakes</strong>, <strong>Silver Lake</strong>, <strong>Midland Beach</strong>, <strong>Schmul Park</strong>, <strong>Wolfe's Pond</strong>, and more. Filter by date and skill level. Tap a game to see details, get directions, and RSVP.</p>
+        <div class="panel" aria-labelledby="search-heading">
+          <h2 id="search-heading" class="visually-hidden" style="position:absolute;left:-9999px">Search games</h2>
+          <div class="search-grid">
+            <div class="field">
+              <label for="park">Park</label>
+              <select id="park" aria-label="Select park">
+                <option value="any">Any park</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="date">Date</label>
+              <input type="date" id="date" aria-label="Pick a date">
+            </div>
+            <div class="field">
+              <label for="skill">Skill</label>
+              <select id="skill" aria-label="Skill level">
+                <option value="any">Any</option>
+                <option>Casual</option>
+                <option>Intermediate</option>
+                <option>Competitive</option>
+              </select>
+            </div>
+            <button id="searchBtn" class="btn-primary" aria-label="Search games">Search</button>
+          </div>
+          <div class="meta" style="margin-top:10px">
+            <span>💡 Tip: enable location when prompted to sort games by distance.</span>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div id="map" role="img" aria-label="Map of Staten Island basketball courts"></div>
+      </div>
+    </section>
+
+    <section id="upcoming" class="section">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h2 style="margin:0">Upcoming Runs</h2>
+        <div class="meta">
+          <span class="badge">Community-posted</span>
+          <span class="badge">Free to join</span>
+        </div>
+      </div>
+      <div id="cards" class="cards" aria-live="polite"></div>
+    </section>
+
+    <section id="post-run" class="section">
+      <div class="cta-banner">
+        <div>
+          <h3 style="margin:0 0 6px">Host a game this week</h3>
+          <p style="margin:0;color:var(--muted)">No account needed—post a pickup run and we’ll generate a shareable link. Players can RSVP in one tap.</p>
+        </div>
+        <div class="row">
+          <a class="btn-primary" href="post.html">Post a Run</a>
+          <a class="btn-ghost" href="#">Back to top</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="panel">
+        <h3 style="margin-top:0">What is Staten Island Runs?</h3>
+        <p>It’s a simple, community-led way to find and organize pickup basketball on Staten Island. We highlight outdoor public courts at NYC parks and popular schoolyard courts. Always be respectful of park rules and other players.</p>
+        <p class="notice">This is a community project and not affiliated with NYC Parks.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer role="contentinfo">
+    <div class="container grid">
+      <div>
+        <div class="brand" style="margin-bottom:8px">
+          <div class="logo" aria-hidden="true">SI</div>
+          <div>Staten Island Runs</div>
+        </div>
+        <div>Pickup basketball finder for Staten Island, NY.</div>
+      </div>
+      <div class="meta" style="justify-content:flex-end">
+        <a href="privacy.html">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const PARKS = [
+      {{ id:'clove', name:'Clove Lakes Park Courts', lat:40.6139, lng:-74.1169 }},
+      {{ id:'silver', name:'Silver Lake Park Courts', lat:40.6257, lng:-74.1079 }},
+      {{ id:'midland', name:'Midland Beach Courts', lat:40.5737, lng:-74.0870 }},
+      {{ id:'schmul', name:'Schmul Park (Bloomfield)', lat:40.6206, lng:-74.1901 }},
+      {{ id:'wolfes', name:'Wolfe\\'s Pond Park Courts', lat:40.5107, lng:-74.1917 }},
+      {{ id:'faber', name:'Faber Park', lat:40.6407, lng:-74.1420 }},
+      {{ id:'thompson', name:'Corporal Thompson Park', lat:40.6373, lng:-74.1408 }}
+    ];
+
+    function futureDate(days, hour=18, minute=0){{
+      const d = new Date(); d.setDate(d.getDate()+days); d.setHours(hour,minute,0,0); return d;
+    }}
+
+    const RUNS = [
+      {{ id:'r1', parkId:'clove', datetime:futureDate(1,18,30), skill:'Intermediate', players:7, need:3, organizer:'@sean_r', note:'Half-court to start, then full if we get 10.' }},
+      {{ id:'r2', parkId:'silver', datetime:futureDate(2,17,0), skill:'Casual', players:5, need:5, organizer:'@nia', note:'Friendly run. New players welcome.' }},
+      {{ id:'r3', parkId:'midland', datetime:futureDate(3,19,0), skill:'Competitive', players:8, need:2, organizer:'@mike23', note:'Full-court, bring a dark & light.' }},
+      {{ id:'r4', parkId:'faber', datetime:futureDate(0,16,30), skill:'Casual', players:6, need:4, organizer:'@jay', note:'3x3 to warm up.' }},
+      {{ id:'r5', parkId:'wolfes', datetime:futureDate(5,18,0), skill:'Intermediate', players:4, need:6, organizer:'@aisha', note:'Great vibes by the water.' }},
+      {{ id:'r6', parkId:'schmul', datetime:futureDate(1,17,30), skill:'Intermediate', players:9, need:1, organizer:'@anton', note:'Quick run, on time please.' }},
+      {{ id:'r7', parkId:'thompson', datetime:futureDate(4,18,0), skill:'Casual', players:3, need:7, organizer:'@luca', note:'Looking for 2 shooters.' }}
+    ];
+
+    const parkSelect = document.getElementById('park');
+    PARKS.forEach(p=>{{ const o=document.createElement('option'); o.value=p.id; o.textContent=p.name; parkSelect.appendChild(o); }});
+
+    let map, markers = [];
+    function initMap(){{
+      map = L.map('map').setView([40.5795, -74.1502], 12);
+      L.tileLayer('https://tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{ maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>' }}).addTo(map);
+      PARKS.forEach(p=>{{ const m = L.marker([p.lat, p.lng]).addTo(map).bindPopup(`<strong>${{p.name}}</strong><br><small><a href="#upcoming">See runs</a></small>`); markers.push({{parkId:p.id, marker:m}}); }});
+    }}
+    window.addEventListener('load', initMap);
+
+    function haversine(lat1, lon1, lat2, lon2){{
+      function toRad(v){{return v*Math.PI/180}}
+      const R=6371e3, p1=toRad(lat1), p2=toRad(lat2), dp=toRad(lat2-lat1), dl=toRad(lon2-lon1);
+      const a=Math.sin(dp/2)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
+      return 2*R*Math.asin(Math.sqrt(a));
+    }}
+
+    const cardsEl = document.getElementById('cards');
+    function formatDate(dt){{
+      const opts={{weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}};
+      return new Intl.DateTimeFormat(undefined,opts).format(dt);
+    }}
+    function parkById(id){{return PARKS.find(p=>p.id===id)}}
+
+    const RSVPS = JSON.parse(localStorage.getItem('si-rsvps')||'[]');
+    function isRSVP(id){{return RSVPS.includes(id)}}
+    function toggleRSVP(id){{ const i = RSVPS.indexOf(id); if(i>=0){{RSVPS.splice(i,1)}} else {{RSVPS.push(id)}} localStorage.setItem('si-rsvps', JSON.stringify(RSVPS)); renderCards(currentRuns); }}
+
+    let currentRuns = RUNS.slice();
+    function renderCards(list){{
+      cardsEl.innerHTML='';
+      if(!list.length){{ cardsEl.innerHTML = '<div class="panel" role="status">No runs match your filters. Try another date or park.</div>'; return; }}
+      list.forEach(run=>{{
+        const p = parkById(run.parkId);
+        const joined = isRSVP(run.id);
+        const card = document.createElement('article');
+        card.className='card';
+        card.innerHTML = `
+          <div class="row" style="justify-content:space-between">
+            <span class="badge">${{p.name}}</span>
+            <span class="pill">${{run.skill}}</span>
+          </div>
+          <h3>${{formatDate(new Date(run.datetime))}}</h3>
+          <div class="row">
+            <span class="pill">Players: ${{run.players}}</span>
+            <span class="pill">Need: ${{run.need}}</span>
+            <span class="pill">Organizer: ${{run.organizer}}</span>
+          </div>
+          <p style="color:var(--muted);margin:0">${{run.note || ''}}</p>
+          <div class="cta">
+            <a class="btn-primary" aria-label="Get directions" href="https://www.google.com/maps/search/?api=1&query=${{encodeURIComponent(p.name+' Staten Island NY')}}" target="_blank">Directions</a>
+            <button class="btn-ghost" aria-pressed="${{joined}}" onclick="toggleRSVP('${{run.id}}')">${{joined ? '✓ RSVPed' : 'RSVP'}}</button>
+            <button class="btn-ghost" onclick="navigator.share ? navigator.share({{title:'Pickup run', text:'Join me at ${{p.name}} on ${{formatDate(new Date(run.datetime))}}', url:location.href}}) : alert('Share this page to invite friends!')">Share</button>
+          </div>
+        `;
+        cardsEl.appendChild(card);
+      }});
+    }}
+
+    let userLocation = null;
+    function sortByDistance(list){{
+      if(!userLocation) return list;
+      return list.slice().sort((a,b)=>{{ const pa=parkById(a.parkId), pb=parkById(b.parkId); const da=haversine(userLocation.lat,userLocation.lng,pa.lat,pa.lng); const db=haversine(userLocation.lat,userLocation.lng,pb.lat,pb.lng); return da-db; }});
+    }}
+    if(navigator.geolocation){{
+      navigator.geolocation.getCurrentPosition(pos=>{{ userLocation = {{lat:pos.coords.latitude, lng:pos.coords.longitude}}; currentRuns = sortByDistance(currentRuns); renderCards(currentRuns); }}, ()=>{{ renderCards(currentRuns); }}, {{enableHighAccuracy:true, timeout:7000}});
+    }} else {{ renderCards(currentRuns); }}
+
+    function applyFilters(){{
+      const park = document.getElementById('park').value;
+      const skill = document.getElementById('skill').value;
+      const date = document.getElementById('date').value;
+      let list = RUNS.filter(r=>{{ let ok=true; if(park!=='any') ok = ok && (r.parkId===park); if(skill!=='any') ok = ok && (r.skill===skill); if(date){{ const d = new Date(r.datetime); const iso = d.toISOString().slice(0,10); ok = ok && (iso===date); }} return ok; }});
+      if(userLocation) list = sortByDistance(list);
+      currentRuns = list; renderCards(list);
+    }}
+    document.getElementById('searchBtn').addEventListener('click', applyFilters);
+
+    const org = {{"@context":"https://schema.org","@type":"SportsActivityLocation","name":"Staten Island Runs","areaServed":"Staten Island, New York","sport":"Basketball","url":document.location.href,"description":"Find and join local pickup basketball games at Staten Island parks."}};
+    const ld = document.createElement('script'); ld.type='application/ld+json'; ld.textContent=JSON.stringify(org); document.head.appendChild(ld);
+  </script>
+</body>
+</html>
